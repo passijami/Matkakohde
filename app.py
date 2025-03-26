@@ -45,11 +45,21 @@ def update_item():
     item_id = request.form["item_id"]
     title = request.form["title"]
     description = request.form["description"]
-    budget = request.form["budget"]
 
-    items.update_item(item_id, title, description, budget)
+    items.update_item(item_id, title, description)
 
     return redirect("/item/" + str(item_id))
+
+@app.route("/remove_item/<int:item_id>", methods=["GET", "POST"])
+def remove_item(item_id):
+    if request.method == "GET":
+        item = items.get_item(item_id)
+        return render_template("remove_item.html", item=item)
+    if request.method == "POST":
+        items.remove_item(item.id)
+        return redirect("/")
+    else:
+        return redirect("/item/" + str(item_id))
 
 @app.route("/register")
 def register():
