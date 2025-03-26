@@ -10,8 +10,9 @@ def get_connection():
 def execute(sql, params=[]):
     con = get_connection()
     try:
-        g.last_insert_id = result.lastrowid
         result = con.execute(sql, params)
+        g.last_insert_id = result.lastrowid
+
         con.commit()
         
     except sqlite3.Error as e:
