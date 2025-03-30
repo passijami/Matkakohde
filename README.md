@@ -1,6 +1,6 @@
 # Matkakohde
 
-Sovelluksen perusvaatimukset ovat:
+Sovelluksen perusvaatimukset välipalautukseen 2:
 
 - Käyttäjä pystyy luomaan tunnuksen ja kirjautumaan sisään sovellukseen.
 - Käyttäjä pystyy lisäämään sovellukseen suosittelemiaan matkakohteita. Lisäksi käyttäjä pystyy muokkaamaan ja poistamaan lisäämiään matkakohteita.
