@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Suosituksen poistos</title>
+</head>
+
+<body>
+  <h1>Suosituksen poisto</h1>
+  <p>Suositus: {{ item.title }}</p>
+  <p>Haluatko varmasti poistaa tämän suosituksen?</p>
+  <form action="/remove_item/{{ item.id }}" method="post">
+    <input type="submit" name="remove" value="Poista">
+    <input type="submit" name="back" value="Peru">
+  </form>
+</body>
+
+</html>
