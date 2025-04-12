@@ -9,27 +9,16 @@ def get_connection():
 
 def execute(sql, params=[]):
     con = get_connection()
-    try:
-        result = con.execute(sql, params)
-        g.last_insert_id = result.lastrowid
-
-        con.commit()
-        
-    except sqlite3.Error as e:
-        con.rollback()
-        raise e
-    finally:
-        con.close()
+    result = con.execute(sql, params)
+    con.commit()
+    g.last_insert_id = result.lastrowid
+    con.close()
 
 def last_insert_id():
-    return getattr(g, 'last_insert_id', None)
-
+    return g.last_insert_id    
+    
 def query(sql, params=[]):
     con = get_connection()
-    try:
-        result = con.execute(sql, params).fetchall()
-    except sqlite3.Error as e:
-        raise e
-    finally:
-        con.close()
+    result = con.execute(sql, params).fetchall()
+    con.close()
     return result
