@@ -50,7 +50,8 @@ def show_item(item_id):
 @app.route("/new_item")
 def new_item():
     check_login()
-    return render_template("new_item.html")
+    classes = items.get_all_classes()
+    return render_template("new_item.html", classes=classes)
 
 #from flask import render_template
 
@@ -70,16 +71,22 @@ def create_item():
     user_id = session["user_id"]
 
     classes = []
-    section = request.form["section"]
-    if section:
-        classes.append(("Osasto", section))
-    rating = request.form["rating"]
-    if rating:
-        classes.append(("Arvostelu", rating))
+    for entry in request.form.getlist("classes"):
+        if entry:
+            parts = entry.split(":")
+            classes.append((parts[0], parts[1]))
 
     items.add_item(title, description, budget, user_id, classes)
 
     return redirect("/")
+
+    #classes = []
+    #section = request.form["section"]
+    #if section:
+        #classes.append(("Osasto", section))
+    #rating = request.form["rating"]
+    #if rating:
+        #classes.append(("Arvostelu", rating))
 
 @app.route("/edit_item/<int:item_id>")
 def edit_item(item_id):
