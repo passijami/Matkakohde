@@ -17,7 +17,7 @@ Lopullisen sovelluksetn perusvaatimukset:
 - Tietoturvallisuus aluillaan
 
 # Välipalautus 3 toiminnot:
-- Sovelluksen tieoturvaa ja sujuvuutta päivitetty
+- Sovelluksen tietoturvaa ja sujuvuutta päivitetty
 - Sovelluksessa on käyttäjäsivut, joissa tilastoa käyttäjistä esim. käyttäjien suositukset
 - Luokittelu lisätty ja löytyy tietokannasta, käyttäjä pystyy luokittelemaan matkakohteita maan, kaupungin tai muun paikan mukaan sekä arvostelemaan matkansa (erinomainen, hyvä, tyydyttävä, heikko)
 - Käyttäjä ei vielä pysty lähettämään toisen käyttäjän tietokohteeseen lisätietoja
