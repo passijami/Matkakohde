@@ -8,7 +8,7 @@ import users
 import re
 
 app = Flask(__name__)
-app.secret_key = config.secret_key #get_secret_key()
+app.secret_key = config.secret_key
 
 def check_login():
     if "user_id" not in session:
@@ -43,7 +43,8 @@ def show_item(item_id):
     item = items.get_item(item_id)
     if not item:
         abort(404)
-    return render_template("show_item.html", item=item)
+    classes = items.get_classes(item_id)
+    return render_template("show_item.html", item=item, classes=classes)
 
 
 @app.route("/new_item")
@@ -68,7 +69,15 @@ def create_item():
         abort(403, "Budjetti ei kelpaa!")
     user_id = session["user_id"]
 
-    items.add_item(title, description, budget, user_id)
+    classes = []
+    section = request.form["section"]
+    if section:
+        classes.append(("Osasto", section))
+    rating = request.form["rating"]
+    if rating:
+        classes.append(("Arvostelu", rating))
+
+    items.add_item(title, description, budget, user_id, classes)
 
     return redirect("/")
 
