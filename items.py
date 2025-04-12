@@ -13,18 +13,18 @@ def get_item(item_id):
                     items.title,
                     items.description,
                     items.budget,
-                    user.id user_id,
+                    users.id AS user_id,
                     users.username
-             FROM items, users
-             WHERE items.user_id = users.id AND
-                   items.id = ?"""
+             FROM items
+             JOIN users ON items.user_id = users.id
+             WHERE items.id = ?"""
     result = db.query(sql, [item_id])
     return result[0] if result else None
 
 def update_item(item_id, title, description):
-    sql = """UPDATE items SET title = ?,
-                              description = ?
-                          WHERE id = ?"""
+    sql = """UPDATE items
+             SET title = ?, description = ?
+             WHERE id = ?"""
     db.execute(sql, [title, description, item_id])
 
 def remove_item(item_id):
@@ -37,4 +37,4 @@ def find_items(query):
              WHERE description LIKE ?
              ORDER BY id DESC"""
     like = "%" + query + "%"
-    return db.query(sql, [like, like])
+    return db.query(sql, [like])
