@@ -34,6 +34,13 @@
     </ul>
   </p>
   {% endif %}
+  {% if session.user_id and session.user_id != item.user_id %}
+    <h2>Lisää suosikiksi</h2>
+    <form action="/add_favorite" method="post">
+      <input type="hidden" name="item_id" value="{{ item.id }}">
+      <input type="submit" value="Lisää suosikiksi">
+    </form>
+  {% endif %}
   <p>
     <a href="/">Takaisin</a>
   </p>
