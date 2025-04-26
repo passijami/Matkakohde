@@ -1,0 +1,11 @@
+<h2>Omat suosikit</h2>
+
+{% if favorites %}
+  <ul>
+    {% for item in favorites %}
+      <li><a href="/item/{{ item.id }}">{{ item.title }}</a></li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>Ei vielä suosikkeja</p>
+{% endif %}
