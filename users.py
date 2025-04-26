@@ -19,9 +19,7 @@ def check_login(username, password):
     sql = "SELECT id, password_hash FROM users WHERE username = ?"
     result = db.query(sql, [username])
     if not result:
-        return None #"Käyttäjää ei ole!"
-    #else:
-        #result = result[0]
+        return None
 
     user_id = result[0]["id"]
     password_hash = result[0]["password_hash"]
@@ -29,4 +27,3 @@ def check_login(username, password):
         return user_id
     else:
         return None
-
