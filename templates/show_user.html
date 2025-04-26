@@ -10,12 +10,13 @@
 <body>
   <h1>Käyttäjä{{ user.username }}</h1>
   <p>
-    Käyttäjällä on yhteensä {{ items ⏐ count }} suositusta.
+    Käyttäjällä on yhteensä {{ items|count }} suositusta.
   </p>
   <h2>Suositukset</h2>
   <ul>
     {% for item in items %}
-    <li><a href="/item/{{ item.id }}">{{ item.title }}</a></li>
+      <li><a href="/item/{{ item.id }}">{{ item.title }}</a></li>
+    {% endfor %}
   </ul>
   <p>
     <a href="/">Takaisin</a>
