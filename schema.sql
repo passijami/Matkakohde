@@ -30,5 +30,12 @@ CREATE TABLE favorites (
     user_id INTEGER NOT NULL,
     item_id INTEGER NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (item_id) REFERENCES items(id)
+    FOREIGN KEY (item_id) REFERENCES items(id),
+    UNIQUE (user_id, item_id)
+);
+
+CREATE TABLE images (
+    id INTEGER PRIMARY KEY,
+    item_id INTEGER REFERENCES items,
+    image BLOB
 );
