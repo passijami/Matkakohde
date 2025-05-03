@@ -1,20 +1,18 @@
-<!DOCTYPE html>
-<html>
+{% extends "layout.html" %}
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Suosituksen poistos</title>
-</head>
+{% block title %}Suosituksen poisto{% endblock %}
 
-<body>
-  <h1>Suosituksen poisto</h1>
-  <p>Suositus: {{ item.title }}</p>
-  <p>Haluatko varmasti poistaa tämän suosituksen?</p>
-  <form action="/remove_item/{{ item.id }}" method="post">
-    <input type="submit" name="remove" value="Poista">
-    <input type="submit" name="back" value="Peru">
-  </form>
-</body>
-
-</html>
+{% block content %}
+<h2>{{ item.title }}</h2>
+<h3>Suosituksen poisto</h3>
+<p>Kohde: <a href="/item/{{ item.id }}">{{ item.title }}</a></p>
+<p>Haluatko varmasti poistaa tämän suosituksen?</p>
+<form action="/remove_item/{{ item.id }}" method="post">
+  <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}" />
+  <input type="submit" name="remove" value="Poista">
+  <input type="submit" name="back" value="Peru">
+</form>
+<p>
+  <a href="/item/{{ item.id }}">Takaisin</a>
+</p>
+{% endblock %}
