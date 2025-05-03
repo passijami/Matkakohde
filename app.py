@@ -1,11 +1,14 @@
+import secrets
 import sqlite3
 from flask import Flask
-from flask import abort, redirect, render_template, request, session, flash
+from flask import abort, make_response, redirect, render_template, request, session, flash, url_for
+import markupsafe
 import db
 import config
 import items
 import users
 import re
+import favorites
 
 app = Flask(__name__)
 app.secret_key = config.secret_key
@@ -13,6 +16,18 @@ app.secret_key = config.secret_key
 def check_login():
     if "user_id" not in session:
         abort(403)
+
+def check_csrf():
+    if "csrf_token" not in request.form:
+        abort(403)
+    if request.form["csrf_token"] != session["csrf_token"]:
+        abort(403)
+
+@app.template_filter()
+def show_lines(content):
+    content = str(markupsafe.escape(content))
+    content = content.replace("\n", "<br />")
+    return markupsafe.Markup(content)
 
 @app.route("/")
 def index():
@@ -44,7 +59,18 @@ def show_item(item_id):
     if not item:
         abort(404)
     classes = items.get_classes(item_id)
-    return render_template("show_item.html", item=item, classes=classes)
+    images = items.get_images(item_id)
+    return render_template("show_item.html", item=item, classes=classes, images=images)
+
+@app.route("/image/<int:image_id>")
+def show_image(image_id):
+    image = items.get_image(image_id)
+    if not image:
+        abort(404)
+
+    response = make_response(bytes(image))
+    response.headers.set("Content-Type", "image/png")
+    return response
 
 @app.route("/new_item")
 def new_item():
@@ -55,33 +81,37 @@ def new_item():
 @app.route("/create_item", methods=["POST"])
 def create_item():
     check_login()
+    check_csrf()
 
     title = request.form["title"]
     if not title or len(title) > 50:
-        abort(403, "Otsikko ei kelpaa!")
+        abort(403, "Otsikko ei kelpaa! (Max. 50 merkkiä)")
     description = request.form["description"]
     if not description or len(description) > 1000:
-        abort(403, "Kuvaus ei kelpaa!")
+        abort(403, "Kuvaus ei kelpaa! (Max. 1000 merkkiä)")
     budget = request.form["budget"]
     if not re.search("^[1-9][0-9]{0,5}$", budget):
-        abort(403, "Budjetti ei kelpaa!")
+        abort(403, "Budjetti ei kelpaa! (Lisää kelvollinen summa)")
     user_id = session["user_id"]
 
     all_classes = items.get_all_classes()
 
     classes = []
     for entry in request.form.getlist("classes"):
-        if entry:
+        if entry and ":" in entry:
             my_title, my_value = entry.split(":")
             if my_title not in all_classes:
                 abort(403)
             if my_value not in all_classes[my_title]:
                 abort(403)
             classes.append((my_title, my_value))
+        else:
+            abort(403)
 
     items.add_item(title, description, budget, user_id, classes)
 
-    return redirect("/")
+    item_id = db.last_insert_id()
+    return redirect("/item/" + str(item_id))
 
 @app.route("/edit_item/<int:item_id>")
 def edit_item(item_id):
@@ -100,9 +130,66 @@ def edit_item(item_id):
 
     return render_template("edit_item.html", item=item, classes=classes, all_classes=all_classes)
 
+@app.route("/images/<int:item_id>")
+def edit_images(item_id):
+    check_login()
+    item = items.get_item(item_id)
+    if not item:
+        abort(404)
+    if item["user_id"] != session["user_id"]:
+        abort(403)
+    
+    images = items.get_images(item_id)
+
+    return render_template("images.html", item=item, images=images)
+
+@app.route("/add_image", methods=["POST"])
+def add_image():
+    check_login()
+    check_csrf()
+
+    item_id = request.form["item_id"]
+    item = items.get_item(item_id)
+    if not item:
+        abort(404)
+    if item["user_id"] != session["user_id"]:
+        abort(403)
+
+    file = request.files["image"]
+    if not file.filename.endswith(".png"):
+        flash("VIRHE: väärä tiedostomuoto")   
+        return redirect("/images/" + str(item_id))
+
+    image = file.read()
+    if len(image) > 100 * 1024:
+        flash("VIRHE: liian suuri kuva")
+        return redirect("/images/" + str(item_id))
+    
+    items.add_image(item_id, image)
+    return redirect("/images/" + str(item_id))
+
+@app.route("/remove_images", methods=["POST"])
+def remove_images():
+    check_login()
+    check_csrf()
+
+    item_id = request.form["item_id"]
+    item = items.get_item(item_id)
+    if not item:
+        abort(404)
+    if item["user_id"] != session["user_id"]:
+        abort(403)
+
+    for image_id in request.form.getlist("image_id"):
+        items.remove_image(item_id, image_id)
+
+    return redirect("/images/" + str(item_id))
+
 @app.route("/update_item", methods=["POST"])
 def update_item():
     check_login()
+    check_csrf()
+
     item_id = request.form["item_id"]
     item = items.get_item(item_id)
     if not item:
@@ -117,8 +204,9 @@ def update_item():
     if not description or len(description) > 1000:
         abort(403, "Kuvaus ei kelpaa!")
 
-    classes = []
     all_classes = items.get_all_classes()
+
+    classes = []
     for entry in request.form.getlist("classes"):
         if entry:
             my_title, my_value = entry.split(":")
@@ -135,6 +223,7 @@ def update_item():
 @app.route("/remove_item/<int:item_id>", methods=["GET", "POST"])
 def remove_item(item_id):
     check_login()
+
     item = items.get_item(item_id)
     if not item:
         abort(404)
@@ -143,11 +232,16 @@ def remove_item(item_id):
 
     if request.method == "GET":
         return render_template("remove_item.html", item=item)
+
     if request.method == "POST":
-        items.remove_item(item_id)
-        return redirect("/")
-    else:
-        return redirect("/item/" + str(item_id))
+        check_csrf()
+        if "remove" in request.form:
+            items.remove_item(item_id)
+            return redirect("/")
+        elif "back" in request.form:
+            return redirect(f"/item/{item_id}")
+    
+    return redirect("/")
 
 @app.route("/register")
 def register():
@@ -159,12 +253,15 @@ def create():
     password1 = request.form["password1"]
     password2 = request.form["password2"]
     if password1 != password2:
-        return "VIRHE: salasanat eivät ole samat"
+        flash("VIRHE: salasanat eivät ole samat")
+        return redirect("/register")
+
     try:
         users.create_user(username, password1)
     except sqlite3.IntegrityError:
-        return "VIRHE: tunnus on jo varattu"
-    flash("VIRHE: väärä tunnus tai salasana")
+        flash("VIRHE: tunnus on jo varattu")
+        return redirect("/register")
+
     return redirect("/")
 
 @app.route("/login", methods=["GET", "POST"])
@@ -180,39 +277,38 @@ def login():
         if user_id:
             session["user_id"] = user_id
             session["username"] = username
+            session["csrf_token"] = secrets.token_hex(16)
             return redirect("/")
         else:
-            #return "VIRHE: väärä tunnus tai salasana"
             flash("VIRHE: väärä tunnus tai salasana")
             return redirect("/login")
     
 @app.route("/add_favorite", methods=["POST"])
-def add_favorite():
+def add_favorite_route():
+    check_login()
+    check_csrf()
     if "user_id" not in session:
         return redirect("/login")
 
     user_id = session["user_id"]
     item_id = request.form["item_id"]
 
-    sql = "INSERT INTO favorites (user_id, item_id) VALUES (?, ?)"
-    db.execute(sql, [user_id, item_id])
-
-    return redirect("/")
+    if favorites.add_favorite(user_id, item_id):
+        flash("Ilmoitus lisätty suosikkeihin!")
+        return redirect("/item/" + str(item_id))
+    else:
+        flash("Tämä ilmoitus on jo suosikeissasi.")
+        return redirect("/item/" + str(item_id))
 
 @app.route("/favorites")
-def favorites():
+def show_favorites():
     if "user_id" not in session:
         return redirect("/login")
 
     user_id = session["user_id"]
+    my_favorite = favorites.get_favorites(user_id)
 
-    sql = """SELECT items.id, items.title
-             FROM items
-             JOIN favorites ON items.id = favorites.item_id
-             WHERE favorites.user_id = ?"""
-    suosikit = db.query(sql, [user_id])
-
-    return render_template("favorites.html", favorites=suosikit)
+    return render_template("favorites.html", favorites=my_favorite)
 
 @app.route("/logout")
 def logout():
