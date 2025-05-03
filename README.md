@@ -1,6 +1,6 @@
 # Matkakohde
 
-##Lopullinen sovellus (11.5.2025)
+## Lopullinen sovellus (11.5.2025)
 - Käyttäjä pystyy luomaan tunnuksen ja kirjautumaan sisään sovellukseen.
 - Käyttäjä pystyy lisäämään sovellukseen suosittelemiaan matkakohteita (kaupunkeja, maita tai muita kohteita). Lisäksi käyttäjä pystyy muokkaamaan ja poistamaan lisäämiään matkakohteita sekä lisäämään kuvia.
 - Käyttäjä näkee sovellukseen lisätyt matkakohteet. Käyttäjä näkee sekä itse lisäämänsä että muiden käyttäjien lisäämät suositukset.
