@@ -1,3 +1,8 @@
+{% extends "layout.html" %}
+
+{% block title %}Omat suosikit{% endblock %}
+
+{% block content %}
 <h2>Omat suosikit</h2>
 
 {% if favorites %}
@@ -9,3 +14,4 @@
 {% else %}
   <p>Ei vielä suosikkeja</p>
 {% endif %}
+{% endblock %}
