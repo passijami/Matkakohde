@@ -1,13 +1,15 @@
+import re
 import secrets
 import sqlite3
+
 from flask import Flask
 from flask import abort, make_response, redirect, render_template, request, session, flash, url_for
 import markupsafe
+
 import db
 import config
 import items
 import users
-import re
 import favorites
 
 app = Flask(__name__)
